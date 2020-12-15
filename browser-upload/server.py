@@ -1,58 +1,75 @@
-import base64
-import datetime
-import json
+import mimetypes
 import os
 from typing import Optional
-import boto3
-import hmac
 
+import boto3
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-class FakeDjangoSettings:
-    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-    SECRET_KEY = os.environ['SECRET_KEY']
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
-settings = FakeDjangoSettings()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# @app.get("/")
-# def read_root():
-#     return {"Hello": "World"}
+S3_BUCKET = os.environ['S3_BUCKET']
 
-@app.get("/get_signed_url")
-def signed_url_endpoint():
-    return signing_code('wakanda4ever', 'foobar.pdf')
+boto3_session = boto3.Session(
+    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    region_name=os.environ['AWS_REGION'])
 
-def signing_code(bucket_name, key, **policy):
-    # Step 1. Base64 encoded security policy (StringToSign)
-    policy = json.dumps(policy).encode()
-    policy_b64 = base64.b64encode(policy).decode()
+s3 = boto3_session.client('s3')
 
-    date = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    aws_id = getattr(
-        settings,
-        "AWS_ACCESS_KEY_ID",
-        "AWS_ACCESS_KEY_ID",
+
+@app.get("/s3/sign")
+def sign_s3_upload(objectName: str):
+    mime_type, _ = mimetypes.guess_type(objectName)
+    presigned_url = s3.generate_presigned_url(
+        'put_object',
+        Params={
+            'Bucket': S3_BUCKET,
+            'Key': objectName,
+            'ContentType': mime_type,
+            'ACL': 'public-read',
+        },
+        ExpiresIn=3600,
     )
-    fields = {
-        "x-amz-algorithm": "AWS4-HMAC-SHA256",
-        "x-amz-date": date,
-        "x-amz-credential": aws_id,
-        "policy": policy_b64,
-        "key": key,
-    }
-    # Step 3. Signature
-    signature = hmac.new(
-        settings.SECRET_KEY.encode(),
-        policy + date.encode(),
-        "sha256",
-    ).digest()
-    signature = base64.b64encode(signature).decode()
+
+    return {'signedUrl': presigned_url}
+
+
+@app.get("/s3/sign_post")
+def signed_url_endpoint(objectName: str):
+    mime_type, _ = mimetypes.guess_type(objectName)
+    presigned_post = s3.generate_presigned_post(
+        Bucket=S3_BUCKET,
+        Key=objectName,
+        Fields={
+            "acl": "public-read",
+            "Content-Type": mime_type
+        },
+        # Conditions={
+        #     "acl": "public-read",
+        #     "Content-Type": "text/plain"
+        # },
+        ExpiresIn=3600,
+    )
     return {
-        "url": "/__s3_mock__/",
-        "fields": {"x-amz-signature": signature, **fields},
+        'data': presigned_post,
+        'url': f'{presigned_post["url"]}{objectName}'
     }
+
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
