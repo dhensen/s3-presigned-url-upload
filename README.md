@@ -22,9 +22,14 @@ Put in the values you prepared/fetched up front.
 Now launch a browser and go to http://localhost:8000
 Upload a file and go to https://s3.console.aws.amazon.com/s3/buckets/your_s3_bucket_name to see your uploaded files.
 
-## AWS resources
+## Dev Resources
 
 - https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-UsingHTTPPOST.html
+- https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
+- https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
+- https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.generate_presigned_url
+- https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.generate_presigned_post
+
 
 ## Example projecten
 
