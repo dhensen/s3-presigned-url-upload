@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+poetry install
+yarn --cwd upload-frontend install
+yarn --cwd upload-frontend build
+
+poetry run uvicorn server:app

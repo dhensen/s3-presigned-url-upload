@@ -1,6 +1,5 @@
 import mimetypes
 import os
-from typing import Optional
 
 import boto3
 from fastapi import FastAPI
@@ -10,7 +9,9 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
 origins = [
-    "http://localhost", "http://localhost:8000", "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
     "http://localhost:3000",
 ]
 
@@ -48,4 +49,7 @@ def sign_s3_upload(objectName: str):
 
     return {'signedUrl': presigned_url}
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+app.mount("/",
+          StaticFiles(directory="upload-frontend/build", html=True),
+          name="static")
