@@ -14,4 +14,4 @@ fi
 
 export $(egrep -v '^#' .env | xargs)
 
-poetry run uvicorn server:app
+poetry run uvicorn --port 8000 server:app

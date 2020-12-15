@@ -5,12 +5,11 @@ import React, { useState } from "react";
 
 function App() {
   const [progress, setProgress] = useState(0);
-  console.log(progress);
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>Kies een bestand om te uploaden:</p>
+        <p>Choose a file to upload:</p>
         <ReactS3Uploader
           signingUrl="http://localhost:8000/s3/sign"
           onProgress={(progressPercentage) => {
