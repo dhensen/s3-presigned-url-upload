@@ -10,9 +10,8 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
 origins = [
-    "http://localhost",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost", "http://localhost:8000", "http://127.0.0.1:8000",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -48,28 +47,5 @@ def sign_s3_upload(objectName: str):
     )
 
     return {'signedUrl': presigned_url}
-
-
-@app.get("/s3/sign_post")
-def signed_url_endpoint(objectName: str):
-    mime_type, _ = mimetypes.guess_type(objectName)
-    presigned_post = s3.generate_presigned_post(
-        Bucket=S3_BUCKET,
-        Key=objectName,
-        Fields={
-            "acl": "public-read",
-            "Content-Type": mime_type
-        },
-        # Conditions={
-        #     "acl": "public-read",
-        #     "Content-Type": "text/plain"
-        # },
-        ExpiresIn=3600,
-    )
-    return {
-        'data': presigned_post,
-        'url': f'{presigned_post["url"]}{objectName}'
-    }
-
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
