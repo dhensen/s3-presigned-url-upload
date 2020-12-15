@@ -1,3 +1,5 @@
+
+
 https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-UsingHTTPPOST.html
 
 Voorbeeld code voor pre-signed url: https://github.com/codingjoe/django-s3file/blob/9b751fb01640491c9d1fb81117dfd0b7f36188cf/s3file/forms.py#L56

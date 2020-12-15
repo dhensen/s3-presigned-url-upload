@@ -6,4 +6,12 @@ poetry install
 yarn --cwd upload-frontend install
 yarn --cwd upload-frontend build
 
+if [ ! -f .env ]; then
+    cp .env.dist .env
+    echo "vscode is being opened to edit your .env file, when done close the file to continue this script..."
+    code --wait .env
+fi
+
+export $(egrep -v '^#' .env | xargs)
+
 poetry run uvicorn server:app
